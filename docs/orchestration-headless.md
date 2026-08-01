@@ -88,6 +88,16 @@ claude -p "<the cell prompt, placeholders substituted>" `
   --allowedTools "Edit Write Read Glob Grep Bash(git:*) Bash(npm:*) Bash(node:*)"
 ```
 
+- **Validated 2026-08-01:** `claude -p` with `--permission-mode acceptEdits`
+  writes files and runs an allow-listed command headlessly (exit 0). The colon
+  form `Bash(cmd:*)` is the one that matches.
+- **Windows two-shell gotcha:** Claude Code on Windows exposes *both* a Bash tool
+  and a PowerShell tool. An `--allowedTools "Bash(...)"` entry covers the Bash
+  tool only; if the model reaches for the PowerShell tool it gets declined and
+  has to route around it (observed in the test — it retried via Bash and
+  succeeded, but that is a wasted step and could stall a stricter cell). For a
+  real implementer cell either allow the shell(s) you expect it to use or widen
+  the permission mode; test the exact allow-list before the round.
 - **Caveat, state it plainly:** with `Bash(...)` allowed and no FS sandbox, a
   headless Claude worker runs with your privileges in that directory — it is
   confined by trust and by the disposable clone, not by a kernel sandbox. This
@@ -102,17 +112,22 @@ claude -p "<the cell prompt, placeholders substituted>" `
 
 ---
 
-## Git ownership — let the orchestrator push
+## Git ownership — the orchestrator does git, but you gate it
 
-The simplest robust split: **the orchestrator owns git**. It creates the branch,
-makes the clone, and after the headless worker has written its files it reviews,
-commits, and pushes. The headless worker only writes into the clone. This keeps
-credentials in your normal shell (not inside a sandbox), and matches the
-orchestrator's defined job (branch management).
+**The headless worker never touches git** — it only writes files into the clone.
+The orchestrator owns all git operations (branch, commit, push). And because the
+orchestrator is interactive, it does **not** commit or push on its own:
 
-If your Git Credential Manager already caches a push token, letting the worker
-commit and push itself (as the prompts in `docs/prompts/` say) also works — but
-the orchestrator-pushes split is the one that never surprises you.
+- After a worker finishes, the orchestrator **reports what happened** — what the
+  worker changed, whether `npm ci && npm run build && npm test` passed, anything
+  that looks off — and **asks you** what to do.
+- **You decide**: commit + push this cell, or roll back (discard the clone,
+  adjust, re-dispatch). Nothing enters the record without your go.
+
+This keeps push credentials in your normal shell (never inside a sandbox),
+matches the orchestrator's defined job (branch management), and keeps you in
+control of every commit. The commit/push commands below are what the orchestrator
+runs **once you approve**, not automatically.
 
 ---
 
@@ -135,15 +150,16 @@ codex exec --disable memories -s workspace-write `
   -C C:\repos\wgp-plan-a `
   "You are the planner for this round. Read AGENTS.md first, then the brief in docs/brief.md. Write your plan to docs/plans/plan-a.md. Create nothing else — no code, no scaffolding."
 
-# 3. review the written plan; if good, commit + push (orchestrator)
+# 3. the orchestrator reports the written plan to you and asks; only on your
+#    approval does it commit + push (otherwise: discard clone and re-dispatch)
 cd C:\repos\wgp-plan-a
 git add docs/plans/plan-a.md
 git commit -m "plan/a: round-1 flappy plan"
 git push
 ```
 
-You gate step 3. If the plan is weak, discard the clone, recreate, and re-run —
-that is the "roll back and retry" you described.
+Step 3 is yours to gate. If the plan is weak, discard the clone, recreate, and
+re-run — the "roll back and retry" you described.
 
 ---
 
@@ -152,13 +168,14 @@ that is the "roll back and retry" you described.
 Same pattern into `flappy/*` branches, prompt from
 [`prompts/implementer.md`](prompts/implementer.md) with `{{LETTER}}`/`{{CELL}}`
 substituted. Implementers need the network (npm) — already enabled above for
-Codex; for Claude the `Bash(npm:*)` allow covers it. After the worker finishes,
-the orchestrator verifies the definition of done and pushes:
+Codex; for Claude the `Bash(npm ...)` allow covers it. After the worker finishes,
+the orchestrator verifies the definition of done, reports to you, and — only on
+your approval — commits and pushes:
 
 ```powershell
 cd C:\repos\wgp-a1
-npm ci && npm run build && npm test    # orchestrator's own verification
-git add -A; git commit -m "flappy/a1: implement plan-a"; git push
+npm ci && npm run build && npm test    # orchestrator's own verification, reported to you
+git add -A; git commit -m "flappy/a1: implement plan-a"; git push   # only on your go
 ```
 
 Run the four cells one at a time. The orchestrator must pass **only** the fixed
