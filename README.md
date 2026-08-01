@@ -59,3 +59,31 @@ Fixed before any variant was run, to keep the scoring honest:
   only criterion that is not a proxy for anything.
 
 ## Layout
+
+```
+docs/plans/plan-a.md          # produced on branch plan/a
+docs/plans/plan-b.md          # produced on branch plan/b
+experiments/flappy/a1/        # self-contained Vite project
+experiments/flappy/a2/
+experiments/flappy/b1/
+experiments/flappy/b2/
+AGENTS.md                     # rules for any agent working here
+CLAUDE.md                     # shim that imports AGENTS.md
+```
+
+Each variant directory is an independent Vite project with its own
+`package.json`. There is no shared build.
+
+## Stack
+
+Vite + TypeScript. Canvas 2D, or Phaser 4 where physics justifies it.
+PWA via `vite-plugin-pwa`. Deployed to Cloudflare Pages, installed to the
+home screen on Android. No native toolchain anywhere in the loop.
+
+## Running a variant
+
+```bash
+cd experiments/flappy/a1
+npm ci
+npm run dev -- --host    # open on a phone on the same network
+```
