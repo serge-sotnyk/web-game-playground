@@ -28,6 +28,30 @@ condition on who wrote what.
 agent may well exceed the variance between agents. This is an exploratory probe,
 not a benchmark, and the results should be read as anecdote.
 
+## Method
+
+Each cell is a separate branch, and each variant writes only into its own
+directory, so nothing overlaps on disk and nothing conflicts on merge.
+
+```
+main
+├── plan/a                  → docs/plans/plan-a.md
+│   ├── flappy/a1           → experiments/flappy/a1/
+│   └── flappy/a2           → experiments/flappy/a2/
+└── plan/b                  → docs/plans/plan-b.md
+    ├── flappy/b1           → experiments/flappy/b1/
+    └── flappy/b2           → experiments/flappy/b2/
+```
+
+Letter = planner, digit = implementer. Isolation is enforced by the working
+tree rather than by trust: a branch physically contains no other variant, and
+each session runs in a single-branch clone so that no other refs exist locally.
+
+Three roles are used, and every session is told which one it has. Planners and
+implementers are sandboxed to one directory and one branch. The orchestrator
+moves across branches, merges results and does the comparison. The full
+procedure is in [`docs/protocol.md`](docs/protocol.md).
+
 ## Round 1 — Flappy Bird
 
 The brief handed to both planners, verbatim:
@@ -40,7 +64,12 @@ being measured.
 
 ## Evaluation criteria
 
-Fixed before any variant was run, to keep the scoring honest:
+Fixed before any variant was run, to keep the scoring honest.
+
+The rubric below is visible to every agent that works here. That is deliberate:
+a shared, stated target measures execution against a known spec, rather than
+measuring who best guessed the human's taste. It is identical across all four
+cells, so it cannot bias the comparison between them.
 
 - **Cold start.** Does `npm ci && npm run build && npm run dev` work first try,
   with zero human fixes?
@@ -63,6 +92,7 @@ Fixed before any variant was run, to keep the scoring honest:
 ```
 docs/plans/plan-a.md          # produced on branch plan/a
 docs/plans/plan-b.md          # produced on branch plan/b
+docs/protocol.md              # step-by-step procedure for the orchestrator
 experiments/flappy/a1/        # self-contained Vite project
 experiments/flappy/a2/
 experiments/flappy/b1/
@@ -87,3 +117,14 @@ cd experiments/flappy/a1
 npm ci
 npm run dev -- --host    # open on a phone on the same network
 ```
+
+## Results
+
+| Cell | Cold start | Interventions | Bugs | Kid rank | Notes |
+| ---- | ---------- | ------------- | ---- | -------- | ----- |
+| a1   |            |               |      |          |       |
+| a2   |            |               |      |          |       |
+| b1   |            |               |      |          |       |
+| b2   |            |               |      |          |       |
+
+_Round 1 not yet run._

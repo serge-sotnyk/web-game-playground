@@ -1,98 +1,73 @@
-# AGENTS.md
+This repository runs a controlled comparison of agent workflows — see README.md
+for the design. What matters to you: several agents are solving the same problem
+independently, and the experiment is worthless if that independence leaks.
 
-Rules for any AI agent working in this repository. Read this before doing
-anything else.
+## Your role
 
-## What this repository is
+Every task here assigns one: **planner**, **implementer**, or **orchestrator**.
+If yours was not stated, ask before doing anything else.
 
-A controlled comparison of multi-agent workflows. Several agents are producing
-independent solutions to the same problem, in isolation from one another. The
-value of the experiment depends entirely on that isolation holding.
+## Isolation — planners and implementers only
 
-## Isolation rules — these are the important ones
+Your assigned directory is your world. Do not read other variants under
+`experiments/`, other plans under `docs/plans/`, or any branch but your own.
+No `git log --all`, no `git branch -a`, no `git show <other-ref>`.
 
-- Work **only** inside the directory you were assigned. Do not create or modify
-  files elsewhere, except your own plan file if you are planning.
-- Do **not** inspect other branches. No `git log --all`, no `git branch -a`,
-  no `git show <other-ref>`, no `git diff` against anything but your own base.
-- Do **not** read other variants under `experiments/`, even if they are visible.
-- Do not consult `MAPPING.local.md` if it exists.
-- If you encounter another variant's code or plan, stop and say so rather than
-  reading further. Contamination is a worse outcome than an unfinished task.
+If you stumble onto another variant's work, stop reading and say so. A stalled
+task is recoverable; a contaminated one is not.
 
-You are not being asked to be the best agent here. You are being asked to be
-an honest sample. Solve the problem the way you would solve it.
+You are not competing with anyone. You are one sample. Solve the problem the
+way you would solve it.
 
-## Hard constraints
+## Orchestrator
 
-- **Build:** Vite + TypeScript. `strict: true`.
-- **Package manager:** npm. No global installs. No `sudo`.
-- **Rendering:** Canvas 2D, or Phaser. If Phaser, it must be **Phaser 4**
-  (`phaser@^4`). Phaser 3 APIs are wrong here: `Geom.Point`, `Mesh`,
-  `BitmapMask`, `setTintFill`, and the v3 pipeline system are all gone.
-  Consult the `skills/` directory in the Phaser repository or Context7 rather
-  than relying on recall — most Phaser knowledge in the wild is v3.
-- **No native tooling.** No Android Studio, Gradle, Capacitor, Cordova, or
-  Android SDK. This ships as a web app. Do not propose otherwise.
-- **No backend.** No server, no API calls at runtime, no analytics.
-- **Persistence:** `localStorage` only.
-- **Dependencies:** keep the tree small. Anything beyond Vite, TypeScript,
-  Phaser, `vite-plugin-pwa` and `vitest` needs a one-line justification in
-  your notes.
-- **Assets:** generate them (shapes, procedural sprites, WebAudio) or use
-  clearly-licensed CC0. Never copy assets from an existing game.
+Exempt from the above — reading across branches, merging and comparing is the
+job. Do not carry content from one variant into another variant's context.
 
-## Target device
+## Constraints
 
-Android Chrome, portrait, touch-first. Must be fully playable at 360×800 CSS
-pixels with no horizontal scroll and no reliance on hover or keyboard. Handle
-`devicePixelRatio` properly — a blurry canvas is a failure. Audio must start
-from a user gesture. Ship a web app manifest and a service worker so the game
-installs to the home screen and runs offline.
+- Vite + TypeScript, `strict`. npm. No global installs, no `sudo`.
+- Canvas 2D, or Phaser — and if Phaser, **v4** (`phaser@^4`). Most Phaser
+  knowledge in training data is v3 and will not run: `Geom.Point`, `Mesh`,
+  `BitmapMask`, `setTintFill` and the pipeline system are gone. Use the
+  `skills/` directory in the Phaser repo, or Context7, instead of recall.
+- Web only. No Capacitor, Cordova, Gradle, Android SDK.
+- No backend, no network at runtime. `localStorage` for persistence.
+- Beyond Vite, TypeScript, Phaser, `vite-plugin-pwa`, `vitest` — justify each
+  dependency in one line.
+- Assets: procedural or CC0, never copied from an existing game.
+- Target: Android Chrome, portrait, touch, 360×800 CSS px. Correct
+  `devicePixelRatio` handling — a blurry canvas is a failed variant.
+- Installable PWA: manifest, service worker, playable offline.
 
-## If you are planning
+## Planner
 
-Write a single markdown file at the path you were given. **No code.** No
-scaffolding, no `package.json`, nothing but the plan.
+One markdown file at the path you were given. No code, no scaffolding.
 
-The plan will be handed to a *different* agent that has never seen this
-conversation. It must be self-sufficient. Cover:
+It goes to an agent that has never seen this conversation and cannot ask you
+anything, so it has to stand alone. Give concrete numbers — gravity, flap
+impulse, gap size and drift, scroll speed, spawn interval, hitbox insets —
+rather than ranges you expect someone else to resolve. Cover the design
+decisions the brief leaves open, module boundaries, the state machine, and
+what "done" means.
 
-- Game design decisions and their rationale — the brief is underspecified on
-  purpose, and closing those gaps is your job, not the implementer's.
-- Concrete tuning numbers: gravity, flap impulse, pipe gap, gap drift, scroll
-  speed, spawn interval, hitbox insets. Ranges are acceptable; silence is not.
-- Architecture: module boundaries, the update/render split, state machine for
-  menu → playing → dead → restart.
-- File layout.
-- What should be unit-tested versus what only manual play can catch.
-- Definition of done.
+Ambiguity you leave will be resolved by guessing, and the guess will be scored
+as yours.
 
-Be decisive. An implementer facing an ambiguous plan will guess, and the guess
-will be attributed to you.
+## Implementer
 
-## If you are implementing
+Build the plan you were given. Where it is ambiguous, wrong, or silent, do not
+quietly redesign — implement your reading of its intent and record the decision
+in `NOTES.md`: what the plan said, what you did, why.
 
-Follow the plan you were given. Where it is ambiguous or wrong:
+`NOTES.md` is a primary result of this experiment, not paperwork. It is how
+plan quality gets measured.
 
-- Do not silently redesign. Implement your best reading of the plan's intent.
-- Record every deviation in `NOTES.md` in your variant directory: what the plan
-  said, what you did, why. This file is a primary artefact of the experiment —
-  it is how plan quality gets measured. Treat it as part of the deliverable.
+Game logic — physics, collision, scoring, state machine — must be testable
+without a canvas and covered by `vitest`. Rendering need not be.
 
-Separate game logic from rendering. Physics, collision, scoring and the state
-machine should be testable without a canvas, and should have `vitest` coverage.
-The rendering layer can go untested.
+## Done
 
-## Definition of done
-
-- `npm ci && npm run build` succeeds from a clean checkout with no warnings you
-  introduced.
-- `npm run dev -- --host` serves a playable game.
-- `npm test` passes.
-- No errors or warnings in the browser console during a full play session.
-- Playable end-to-end with touch at 360×800: start, flap, score, die, restart.
-- `README.md` in your variant directory: what you built, how to run it, what
-  you would do next, anything you consider unfinished.
-
-Do not commit `node_modules`, build output, or `.env` files.
+`npm ci && npm run build && npm test` clean from a fresh checkout. Playable
+start-to-restart by touch at 360×800 with a silent console. A short `README.md`
+in your directory: what you built, what you would do next, what is unfinished.
