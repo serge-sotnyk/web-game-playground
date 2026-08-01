@@ -4,8 +4,8 @@ independently, and the experiment is worthless if that independence leaks.
 
 ## Your role
 
-Every task here assigns one: **planner**, **implementer**, or **orchestrator**.
-If yours was not stated, ask before doing anything else.
+Every task here assigns one: **planner**, **implementer**, **orchestrator**, or
+**preparer**. If yours was not stated, ask before doing anything else.
 
 ## Isolation — planners and implementers only
 
@@ -24,13 +24,24 @@ way you would solve it.
 Exempt from the above — reading across branches, merging and comparing is the
 job. Do not carry content from one variant into another variant's context.
 
+## Preparer
+
+A setup role, run between rounds (or before the first one), on `main` only.
+Prepares the environment and scaffolding — pins tooling, fixes bookkeeping,
+keeps the protocol and prompts current — so that a round can be run. Writes no
+plan and no game code, and creates no `plan/*` or `flappy/*` branch. Not bound
+by the isolation rules: there is nothing to leak before a round has started.
+
 ## Constraints
 
 - Vite + TypeScript, `strict`. npm. No global installs, no `sudo`.
 - Canvas 2D, or Phaser — and if Phaser, **v4** (`phaser@^4`). Most Phaser
   knowledge in training data is v3 and will not run: `Geom.Point`, `Mesh`,
-  `BitmapMask`, `setTintFill` and the pipeline system are gone. Use the
-  `skills/` directory in the Phaser repo, or Context7, instead of recall.
+  `BitmapMask`, `setTintFill` and the pipeline system are gone. **Look the v4
+  API up in Context7** — it is the primary reference and is connected on both
+  harnesses. Resolve `Phaser 4` there and pick the `4.x` API-documentation
+  library (verified 2026-08-01: `4.0.0-rc.6`, ~8k snippets). The `skills/`
+  directory in the Phaser repo is a secondary reference. Do not rely on recall.
 - Web only. No Capacitor, Cordova, Gradle, Android SDK.
 - No backend, no network at runtime. `localStorage` for persistence.
 - Beyond Vite, TypeScript, Phaser, `vite-plugin-pwa`, `vitest` — justify each
