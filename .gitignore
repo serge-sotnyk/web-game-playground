@@ -1,6 +1,13 @@
 # ─── Project-specific ────────────────────────────────────────────────
-# Experiment bookkeeping — must never be committed
+# Experiment bookkeeping — must never be committed. These three files hold the
+# A/B/1/2 mapping, the pinned environment, and the run state; leaking any one of
+# them into a worker session breaks the experiment. Listed explicitly so the
+# protection does not depend on the globs below (note: *.local.* does NOT match
+# MAPPING.local — it has no second dot).
 MAPPING.local
+ENVIRONMENT.local.md
+RUNLOG.local.md
+# Backstop for any other *.local / *.local.* bookkeeping files.
 *.local
 *.local.*
 
