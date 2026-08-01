@@ -174,7 +174,7 @@ your approval — commits and pushes:
 
 ```powershell
 cd C:\repos\wgp-a1
-npm ci && npm run build && npm test    # orchestrator's own verification, reported to you
+npm ci && npm run build                # + npm test only if this variant wrote tests
 git add -A; git commit -m "flappy/a1: implement plan-a"; git push   # only on your go
 ```
 
