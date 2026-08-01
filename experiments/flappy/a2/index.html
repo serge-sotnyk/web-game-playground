@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#070A18" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon-180.png" />
+    <title>Neonfall</title>
+  </head>
+  <body>
+    <div id="game" aria-label="Neonfall game"></div>
+    <div
+      id="safe"
+      aria-hidden="true"
+      style="position: fixed; top: 0; left: 0; width: 0; height: 0; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); visibility: hidden"
+    ></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
