@@ -279,8 +279,16 @@ Verify all four still build from the merged tree:
 Get-ChildItem experiments\flappy -Directory | ForEach-Object {
   Write-Host "=== $($_.Name) ===" -ForegroundColor Cyan
   Push-Location $_.FullName
-  npm ci && npm run build && npm test
-  if ($LASTEXITCODE -ne 0) { Write-Warning "FAILED: $($_.Name)" }
+  npm ci && npm run build
+  if ($LASTEXITCODE -ne 0) { Write-Warning "BUILD FAILED: $($_.Name)" }
+  # tests are the agent's choice (an observable) — run them only if present
+  $test = (Get-Content package.json -Raw | ConvertFrom-Json).scripts.test
+  if ($test) {
+    npm test
+    if ($LASTEXITCODE -ne 0) { Write-Warning "TESTS FAILED: $($_.Name)" }
+  } else {
+    Write-Host "(no test script — this variant chose not to test)" -ForegroundColor DarkGray
+  }
   Pop-Location
 }
 ```

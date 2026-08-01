@@ -86,8 +86,9 @@ cells, so it cannot bias the comparison between them.
 - **Feel.** Hitbox fairness, difficulty curve, responsiveness, juice. Does it
   actually play like Flappy Bird?
 - **Bugs.** Found in ten minutes of unstructured play.
-- **Structure.** Is game logic separated from rendering? Are there tests? Is the
-  code something a human could pick up?
+- **Structure.** Is game logic separated from rendering? Whether to write tests
+  was left to each agent, so their presence, shape and quality is itself a
+  signal — not a checkbox. Is the code something a human could pick up?
 - **Scope discipline.** Did it build what the plan said, or wander?
 - **Fidelity to plan.** For implementers: how much was silently redesigned?
   (see each variant's `NOTES.md`)

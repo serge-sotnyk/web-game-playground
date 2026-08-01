@@ -78,12 +78,16 @@ in `NOTES.md`: what the plan said, what you did, why.
 `NOTES.md` is a primary result of this experiment, not paperwork. It is how
 plan quality gets measured.
 
-Game logic — physics, collision, scoring, state machine — must be testable
-without a canvas and covered by `vitest`. Rendering need not be.
+Whether and how you test is your call — the presence, shape and quality of
+tests is one of the things being observed in this experiment, not a requirement
+imposed on you. If you do write tests, keep game logic (physics, collision,
+scoring, state machine) separable from rendering so it can be exercised without
+a canvas; `vitest` is available. Rendering need not be tested.
 
 ## Done
 
-`npm ci && npm run build && npm test` clean from a fresh checkout. Playable
-start-to-restart by touch, portrait, responsive (verified at least at 360×800
-and one larger high-DPR viewport), with a silent console. A short `README.md` in
+`npm ci && npm run build` clean from a fresh checkout — and `npm test` green
+too, if you chose to write tests. Playable start-to-restart by touch, portrait,
+responsive (verified at least at 360×800 and one larger high-DPR viewport), with
+a silent console. A short `README.md` in
 your directory: what you built, what you would do next, what is unfinished.
