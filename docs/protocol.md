@@ -332,9 +332,15 @@ which.
 
 ## Rules for the orchestrator
 
-- Your job is branch management, merging, and verification — not running the
-  worker sessions (the human does that, interactively, one at a time) and not
-  writing or fixing variant code.
+- Your job is branch management, merging, and verification. In the **interactive**
+  run you do **not** run the worker sessions — the human does, one at a time. In
+  the **headless** track you additionally **dispatch** each worker (`codex exec`
+  / `claude -p`). In neither case do you write a plan or variant code yourself:
+  if you did, the cells would inherit your context — contamination.
+- To dispatch in the headless track you need the **A/B/1/2 ↔ agent mapping** (to
+  pick `codex exec` vs `claude -p` per cell). You are exempt from isolation, so
+  you may read `MAPPING.local` or take the mapping from the human — but **never**
+  put that mapping, or the file, into a worker's prompt.
 - Do not edit variant code. If something is broken, that is a result, not a
   task. Fix nothing after the session ends.
 - Do not reuse a session across roles. A planning session that becomes an

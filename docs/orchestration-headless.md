@@ -30,6 +30,12 @@ actually ran.
   review output → commit/push. If the orchestrator wrote plan or game code
   itself, the Claude cells would inherit its full context — contamination, and
   an unfair advantage. Keep it to dispatch + git + verification.
+- **The orchestrator needs the A/B/1/2 ↔ agent mapping** — it is what tells it
+  whether a given cell is a `codex exec` dispatch or a `claude -p` dispatch. Get
+  it from the human, or read `MAPPING.local` (the orchestrator is exempt from
+  isolation, so it may). **Never** put that mapping — or the file — into a
+  worker's prompt. If `MAPPING.local` does not exist yet, ask the human to
+  assign identities before phase 1.
 
 This preserves the properties the interactive protocol cares about: one cell at
 a time, resumable, stop between any two, single-branch isolation. It changes one
