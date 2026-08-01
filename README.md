@@ -52,15 +52,20 @@ implementers are sandboxed to one directory and one branch. The orchestrator
 moves across branches, merges results and does the comparison. The full
 procedure is in [`docs/protocol.md`](docs/protocol.md).
 
-## Round 1 — Flappy Bird
+## Round 1 — a Flappy-class casual game (codename `flappy`)
 
 The brief handed to both planners, verbatim:
 
-> A Flappy Bird-style game for mobile browsers, playable in portrait on a phone.
-> All game design decisions are yours.
+> A simple, casual mobile-browser game in the *spirit* of Flappy Bird — the same
+> pick-up-and-play, "just one more try" tier of difficulty, playable one-handed
+> in portrait on a phone. The specific mechanic, theme and controls are yours to
+> invent: it need not be a bird, and need not be flap-up-and-fall. Keep it 2D
+> (no heavy 3D) and learnable in seconds. All game design decisions are yours.
 
-Deliberately underspecified. How an agent fills the gaps is part of what is
-being measured.
+Deliberately open — the *mechanic itself* is the planner's to invent, so the two
+planners may land on genuinely different games. How an agent fills that space is
+part of what is being measured. (`flappy` stays as the round codename for
+branches and directories; the brief is the source of truth for scope.)
 
 ## Evaluation criteria
 
@@ -74,8 +79,10 @@ cells, so it cannot bias the comparison between them.
 - **Cold start.** Does `npm ci && npm run build && npm run dev` work first try,
   with zero human fixes?
 - **Interventions.** How many times did the human have to unblock the agent?
-- **Runs on the target device.** Portrait, touch, 360×800 CSS px, real Android
-  Chrome. Any layout or input breakage?
+- **Runs on the target devices.** Portrait, touch, real Android Chrome, and
+  responsive: crisp and playable from a small budget phone (~360 CSS px wide,
+  lower DPR) up to a high-DPR flagship (e.g. Galaxy S-Ultra), correct
+  `devicePixelRatio`. Any layout or input breakage across that range?
 - **Feel.** Hitbox fairness, difficulty curve, responsiveness, juice. Does it
   actually play like Flappy Bird?
 - **Bugs.** Found in ten minutes of unstructured play.
@@ -106,9 +113,11 @@ Each variant directory is an independent Vite project with its own
 
 ## Stack
 
-Vite + TypeScript. Canvas 2D, or Phaser 4 where physics justifies it.
-PWA via `vite-plugin-pwa`. Deployed to Cloudflare Pages, installed to the
-home screen on Android. No native toolchain anywhere in the loop.
+Vite + TypeScript. Phaser 4, fixed for round 1 so the engine is held constant
+across variants. PWA via `vite-plugin-pwa`. Deployed to Cloudflare Pages,
+installed to the home screen on Android. No native toolchain in the agents'
+build loop; the installable PWA can later be wrapped to an Android APK via
+TWA / Bubblewrap as a downstream step (outside the agents' scope).
 
 ## Running a variant
 

@@ -35,7 +35,8 @@ by the isolation rules: there is nothing to leak before a round has started.
 ## Constraints
 
 - Vite + TypeScript, `strict`. npm. No global installs, no `sudo`.
-- Canvas 2D, or Phaser — and if Phaser, **v4** (`phaser@^4`). Most Phaser
+- **Phaser 4** (`phaser@^4`) — fixed for this round, so the engine is held
+  constant across all four variants (not Canvas 2D, not Phaser 3). Most Phaser
   knowledge in training data is v3 and will not run: `Geom.Point`, `Mesh`,
   `BitmapMask`, `setTintFill` and the pipeline system are gone. **Look the v4
   API up in Context7** — it is the primary reference and is connected on both
@@ -47,8 +48,11 @@ by the isolation rules: there is nothing to leak before a round has started.
 - Beyond Vite, TypeScript, Phaser, `vite-plugin-pwa`, `vitest` — justify each
   dependency in one line.
 - Assets: procedural or CC0, never copied from an existing game.
-- Target: Android Chrome, portrait, touch, 360×800 CSS px. Correct
-  `devicePixelRatio` handling — a blurry canvas is a failed variant.
+- Target: Android Chrome, portrait, touch, **responsive across mobile screens**
+  — adapt to the viewport, do not assume one fixed size. The test floor is
+  360×800 CSS px (a small budget phone); it must also render crisp on a high-DPR
+  flagship (e.g. a Galaxy S-Ultra). Correct `devicePixelRatio` handling — a
+  blurry canvas is a failed variant.
 - Installable PWA: manifest, service worker, playable offline.
 
 ## Planner
@@ -80,5 +84,6 @@ without a canvas and covered by `vitest`. Rendering need not be.
 ## Done
 
 `npm ci && npm run build && npm test` clean from a fresh checkout. Playable
-start-to-restart by touch at 360×800 with a silent console. A short `README.md`
-in your directory: what you built, what you would do next, what is unfinished.
+start-to-restart by touch, portrait, responsive (verified at least at 360×800
+and one larger high-DPR viewport), with a silent console. A short `README.md` in
+your directory: what you built, what you would do next, what is unfinished.
