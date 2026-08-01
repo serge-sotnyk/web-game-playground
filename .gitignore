@@ -1,6 +1,27 @@
-.idea/
+# ─── Project-specific ────────────────────────────────────────────────
+# Experiment bookkeeping — must never be committed
+MAPPING.local
+*.local
 *.local.*
 
+# Vite
+dist-ssr/
+
+# Cloudflare
+.wrangler/
+.dev.vars
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Node template below ─────────────────────────────────────────────
 # Logs
 logs
 *.log
