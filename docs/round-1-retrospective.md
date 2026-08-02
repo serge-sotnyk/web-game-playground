@@ -194,6 +194,106 @@ None of these were variant defects; they were harness/host/orchestrator issues.
    (browser, network, a specific tool), confirm each harness actually has it
    before the round, not during it.
 
+## Part two — from a merged branch to an app on a phone
+
+The round ended with four builds in `main`. Getting one onto a phone as an
+installed app took no Android toolchain at all, and the chain is worth recording
+because most of its friction was in places the documentation does not warn about.
+
+**The chain.** Vite PWA build → Cloudflare Pages (`wrangler pages deploy dist`)
+→ PWABuilder → signed APK → sideload. Four projects were deployed, one per cell,
+under deliberately neutral names so the blind ranking could not be gamed:
+
+| URL | Cell |
+| --- | --- |
+| `wgp-r1-rose.pages.dev` | a1 |
+| `wgp-r1-indigo.pages.dev` | a2 |
+| `wgp-r1-amber.pages.dev` | b1 |
+| `wgp-r1-teal.pages.dev` | b2 |
+
+Cloudflare Pages' free tier covers this outright: static asset requests are
+unlimited on the free plan, and 500 deploys/month is far beyond what a round
+needs. No card, no cost.
+
+**Four traps, in the order they were hit:**
+
+1. **PWABuilder's "Other Android" tab always emits an *unsigned* APK** (its own
+   tooltip says so). Android refuses to install an unsigned APK — developer mode
+   does not change that; the signature is a platform requirement, not a store
+   policy. The signing key option lives on the **Google Play** tab
+   (`None` / `New` / `Mine`), and `None` is the default. Use the Google Play tab
+   with `Signing key: New` even when you never intend to touch the Play Store.
+2. **The `.aab` is not installable.** It is a publishing format that only Google
+   Play can expand into device-specific APKs. For sideloading, the `.apk` is the
+   only usable artefact.
+3. **A TWA is not a standalone app.** It is a thin shell that loads the live URL
+   in a Chrome container. The site has to keep existing. Offline play works only
+   because these are real PWAs with a full precache service worker — and only
+   *after* one successful online launch.
+4. **Digital Asset Links are verified at install time.** Deploying
+   `/.well-known/assetlinks.json` after the app is already installed changes
+   nothing until you uninstall and reinstall. Without it the app runs with a
+   browser address bar visible.
+
+**Operational lesson:** the isolation clones were deleted at "end of round", and
+then one was needed again to redeploy. It cost only a rebuild here, because the
+build is reproducible from a lockfile — but the general rule is to keep the
+environment until the *downstream consumers* are done, not until the round is.
+
+## Lessons that generalise beyond this experiment
+
+- **Verify claims, do not relay them.** Every worker self-reported success; every
+  reviewer stated findings with confidence. Spot-checking them cost minutes and
+  changed the record twice: an `EPERM` failure during cold-start verification
+  turned out to be a `vite preview` process the *previous* worker had left
+  running, which would otherwise have been logged as "this variant fails to
+  build"; and a reviewer's arithmetic claim about an ineffective test was
+  confirmed only by re-deriving it by hand.
+- **Blind your own evaluation deliberately.** Evaluation was delegated to
+  subagents with an explicit rule forbidding them from reading the agent mapping,
+  so they judged in `a1/a2/b1/b2` terms. That is what makes it meaningful that
+  their ranking disagreed with the players'.
+- **Park cleanly at human-gated boundaries.** Some steps are structurally the
+  human's: creating accounts, entering credentials, generating a signing key,
+  approving a push. An orchestrator should name the handoff and stop, rather than
+  doing adjacent work to stay busy. That boundary is where the human's trust in
+  everything else is set.
+- **Pin what you claim to have pinned.** The environment record said one model;
+  the workers ran another, because the launch command omitted `--model` and
+  inherited a default that had moved. Two independent parts of this session were
+  wrong about their own model. Record what the transcript says, not what you
+  intended.
+- **A contradiction left in a spec ships as an artefact.** Plan B specified a
+  sprite that was both `34×26` and a circle of radius `15`. One implementer chose
+  the ellipse, the other the circle; a player noticed the squashed one and marked
+  it down. Plan A left the collision-vs-score tie unspecified and got two
+  different games. Ambiguity is not deferred — it is delegated, and then it is
+  scored as yours.
+
+## If you reuse this repository as a template
+
+What transfers: the role separation in `AGENTS.md`; single-branch clones as the
+isolation mechanism (stronger and simpler than worktrees, which carry the whole
+ref graph); the orchestrator owning git so that "did it stay in its lane?"
+becomes a merge check; a rubric fixed *before* the round and visible to every
+agent; and `NOTES.md` as a required deliverable — it is what turned "the sprite
+looks squashed" into a traceable plan defect.
+
+What was incidental: the game, the engine, `Phaser 4`, and the specific brief.
+The 2×2 shape only needs two producers of a spec and two consumers of it.
+
+One thing to fix before reusing: this round deliberately published its A/B/1/2 ↔
+agent mapping once it was over. If you run another round in the same repository,
+a worker's clone will contain that file and can read it. Move it out of tracked
+files first, or accept the leak knowingly.
+
+Deployment note for anyone redeploying `wgp-r1-indigo`: the
+`/.well-known/assetlinks.json` served there was injected into `dist` at deploy
+time and is **not** in the variant's sources — deliberately, so the recorded
+experiment result stayed untouched. A rebuild-and-redeploy will drop it and the
+installed app will show an address bar again. Its content is the `assetlinks.json`
+that PWABuilder ships in the signed package.
+
 ## Reproducibility record (corrections to the pin)
 
 - Claude worker model: **`claude-opus-5`** (transcript-confirmed), CLI 2.1.220,
