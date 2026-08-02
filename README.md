@@ -135,12 +135,12 @@ went wrong operationally is in
 [`docs/round-1-retrospective.md`](docs/round-1-retrospective.md)
 ([українською](docs/round-1-retrospective.uk.md)).
 
-| Cell | Plan | Game | Cold start | Interventions | Tests | Defects found by review | Kid rank |
-| ---- | ---- | --------- | ---------- | ------------- | ------------ | ----------------------- | --------- |
-| a1   | A    | Neonfall  | clean      | 0             | 63 / 7 files | none                    | _pending_ |
-| a2   | A    | Neonfall  | clean      | 0             | 12 / 1 file  | 4 (incl. a plan-stated requirement missed) | _pending_ |
-| b1   | B    | Flux Flip | clean      | 0             | 86 / 7 files | none (build emits a chunk-size advisory)   | _pending_ |
-| b2   | B    | Flux Flip | clean      | 0             | 24 / 5 files | 4 (two would show on a real phone)         | _pending_ |
+| Cell | Plan | Game | Cold start | Interventions | Tests | Defects found by review | Bugs in play | Kid rank |
+| ---- | ---- | --------- | ---------- | ------------- | ------------ | ----------------------- | ------------ | -------- |
+| a1   | A    | Neonfall  | clean      | 0             | 63 / 7 files | none                    | **1** (death on empty space, one device) | **2** |
+| a2   | A    | Neonfall  | clean      | 0             | 12 / 1 file  | 4 (incl. a plan-stated requirement missed) | none observed | **1** |
+| b1   | B    | Flux Flip | clean      | 0             | 86 / 7 files | none (build emits a chunk-size advisory)   | none observed | **3** |
+| b2   | B    | Flux Flip | clean      | 0             | 24 / 5 files | 4 (two would show on a real phone)         | squashed sprite on one device | **4** |
 
 **Cold start** — `npm ci && npm run build && npm test` from a fresh checkout with
 zero human fixes: all four clean.
@@ -159,8 +159,7 @@ everywhere. On this criterion all four pass; the separation is real.
 
 Defects below were found by **blind review of the merged tree** (reviewers were
 given only `a1/a2/b1/b2`, not which system wrote which) and spot-verified by
-hand. They are reading-level findings; the play-testing criteria (feel, bugs in
-ten minutes of play, the kid verdict) are still open.
+hand.
 
 - **a2** — the only variant without `banner: false` / `audio: { noAudio: true }`,
   so Phaser prints its boot banner: plan A §10.4 requires a silent console and
@@ -177,6 +176,48 @@ ten minutes of play, the kid verdict) are still open.
   comes back unresolved. `remapRun` does not re-clamp gap centres, so an extreme
   resize can place a gap outside its legal band. No `webkitAudioContext`
   fallback.
+
+### The human verdict
+
+Four builds were served from neutral `*.pages.dev` URLs in shuffled order, with
+no labels, no mention that different systems wrote them, and no hint that the
+four were two games in two versions each. Two people played them independently.
+
+_Protocol note, recorded rather than tidied away: the criterion above anticipated
+a nine-year-old. In the event the blind ranking was done by the adult who asked
+for the experiment, with the repository owner playing separately. The criteria
+were fixed before the round and are left as written._
+
+**Ranking, best to worst: `a2` › `a1` › `b1` › `b2`.**
+
+- **The mechanic decided it.** Both plan-A cells beat both plan-B cells, and both
+  players gave the same unprompted reason: in portrait, a horizontally scrolling
+  game does not leave enough screen to see what is coming. That is a *planner*
+  decision — the brief left the mechanic open — and it outweighed everything the
+  implementers did.
+- **The blind ranker reconstructed the pair structure without being told it
+  existed**, noting that two of the builds differed only in "minor" ways and that
+  a third did not share their traits. The differences a plan makes are visible to
+  a player; the differences an implementer makes, within a plan, largely are not.
+- **Plan B earned one point back:** its gates start drifting early enough to add
+  variety, which plan A's course has no equivalent of. Its constant gravity
+  acceleration, however, made it harder from the first seconds.
+- **Within plan B, `b1` was preferred** for clearer gate-pass feedback — the
+  same direction the code review pointed.
+- **`b2`'s sprite read as "squashed" on one player's screen, and `b1`'s did
+  not.** This maps exactly onto a deviation `b2` recorded in its own `NOTES.md`:
+  the plan gave the spark both a `34U × 26U` footprint and a radius-`15U`
+  circular halo, which cannot both be true. `b2` resolved the contradiction by
+  drawing an ellipse, `b1` by keeping the circles. A contradiction left in a plan
+  became an artefact a player noticed and marked down.
+- **`a1` lost first place to a bug** — a death against empty space, seen once
+  mid-run on one device and not reproduced on the other. `a1` is the variant with
+  63 tests *and* a bot that plays the simulation; `a2`, with 12, showed no bug on
+  either device. The tests bought a great deal, but not this.
+- **Neither player found the mechanics inventive.** "Everything feels somewhat
+  primitive — I expected the planners to invent something more interesting,"
+  against a top score of 21. The brief explicitly handed the mechanic to the
+  planner, and both planners chose a conservative one-button variation.
 
 ### What the 2×2 actually showed
 
@@ -205,4 +246,26 @@ the rule they name is removed.
 the more disciplined variant on both plans — more tests, deeper NOTES, named
 constants over inline literals, extra tsconfig strictness — consistently enough
 to call a tendency, though not a clean sweep (each of the other two cells has at
-least one axis where it leads). n=1 per cell: this is anecdote, not measurement.
+least one axis where it leads).
+
+*Engineering quality did not predict enjoyment.* This is the sharpest result of
+the round. Two blind code reviewers ranked the variants `b1` › `a1` › `a2` ≈
+`b2`. Two blind players ranked them `a2` › `a1` › `b1` › `b2`. The variant with
+the best-enforced module boundaries, 86 boundary-tested cases and the most
+careful Phaser-4-on-Android work came **third** with players; the variant with
+the thinnest suite, a missed plan requirement and dead code came **first**. The
+two verdicts are measuring different things and neither is wrong — but if the
+only question is "which of these is the better game", the code review answered a
+different one. What the players responded to was the *mechanic*, decided in the
+plan, plus one visible bug and one visible art artefact.
+
+*So: which matters more, the plan or the implementer?* On this evidence, for the
+thing a player perceives, **the plan** — it chose the mechanic, and the mechanic
+decided the ranking. For everything a maintainer perceives — test rigour,
+boundary discipline, whether the fixed-step loop is testable at all — the
+**implementer** dominated, with the plan able to raise the floor by mandating
+specifics but not the ceiling. The two effects barely overlap.
+
+Caveat, restated: n=1 per cell, two evaluators, one round, one brief. Run-to-run
+variance within a single agent may well exceed everything described above. This
+is anecdote, recorded carefully — not measurement.
