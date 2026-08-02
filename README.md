@@ -130,11 +130,79 @@ npm run dev -- --host    # open on a phone on the same network
 
 ## Results
 
-| Cell | Cold start | Interventions | Bugs | Kid rank | Notes |
-| ---- | ---------- | ------------- | ---- | -------- | ----- |
-| a1   |            |               |      |          |       |
-| a2   |            |               |      |          |       |
-| b1   |            |               |      |          |       |
-| b2   |            |               |      |          |       |
+Round 1 ran headless. How it was orchestrated, what each stage cost, and what
+went wrong operationally is in
+[`docs/round-1-retrospective.md`](docs/round-1-retrospective.md)
+([українською](docs/round-1-retrospective.uk.md)).
 
-_Round 1 not yet run._
+| Cell | Plan | Game | Cold start | Interventions | Tests | Defects found by review | Kid rank |
+| ---- | ---- | --------- | ---------- | ------------- | ------------ | ----------------------- | --------- |
+| a1   | A    | Neonfall  | clean      | 0             | 63 / 7 files | none                    | _pending_ |
+| a2   | A    | Neonfall  | clean      | 0             | 12 / 1 file  | 4 (incl. a plan-stated requirement missed) | _pending_ |
+| b1   | B    | Flux Flip | clean      | 0             | 86 / 7 files | none (build emits a chunk-size advisory)   | _pending_ |
+| b2   | B    | Flux Flip | clean      | 0             | 24 / 5 files | 4 (two would show on a real phone)         | _pending_ |
+
+**Cold start** — `npm ci && npm run build && npm test` from a fresh checkout with
+zero human fixes: all four clean.
+
+**Interventions** — in a headless run this reads as "did the cell complete in one
+dispatch?". All six cells (both plans included) did: **0 interventions, 0
+rollbacks, 0 re-dispatches**.
+
+**Scope discipline** — merging all six branches into `main` was conflict-free, so
+no variant wrote outside its own directory. Clean across all four.
+
+**Structure** — verified rather than taken on trust: in every variant the pure
+logic modules import no Phaser and touch no browser globals. No `console.*`,
+`TODO`, `@ts-ignore`, `any` or disabled lint in any `src/`. `strict: true`
+everywhere. On this criterion all four pass; the separation is real.
+
+Defects below were found by **blind review of the merged tree** (reviewers were
+given only `a1/a2/b1/b2`, not which system wrote which) and spot-verified by
+hand. They are reading-level findings; the play-testing criteria (feel, bugs in
+ten minutes of play, the kid verdict) are still open.
+
+- **a2** — the only variant without `banner: false` / `audio: { noAudio: true }`,
+  so Phaser prints its boot banner: plan A §10.4 requires a silent console and
+  `NOTES.md` does not mention the gap. Dead code (`platform/viewport.ts`'s
+  `onChange` is exported and never called, leaving its listener set permanently
+  empty). Star field spread is computed once against a fixed range, so it falls
+  short of the letterbox on viewports wider than 0.6 aspect. Background is drawn
+  at exactly the view size with no overscan while `shake()` runs on death.
+- **b2** — `RENDER_DPR` is a module-scope constant evaluated once at import and
+  never re-read, so a DPR change (display switch, browser zoom) leaves the
+  backing store wrong. Safe-area insets are read via
+  `getComputedStyle().getPropertyValue('--safe-*')` rather than resolved probe
+  padding as the other three do, silently degrading to zero insets if the token
+  comes back unresolved. `remapRun` does not re-clamp gap centres, so an extreme
+  resize can place a gap outside its legal band. No `webkitAudioContext`
+  fallback.
+
+### What the 2×2 actually showed
+
+**The plan sets the floor and the coverage map; the implementer sets the ceiling
+and the rigour.** Both effects are real and they act on different axes.
+
+*Plan effect.* Plan B mandated tests and embedded literal expected values;
+`storage` and layout/DPR maths are consequently tested in **both** B cells and in
+**neither** A cell, and the strongest single test in the weaker B cell is one the
+plan wrote for it. Plan B's demand for a 30/60/120 Hz equivalence test pushed b1
+to move the fixed-step accumulator out of the Phaser scene so it could be tested
+at all — a1 and a2 both left theirs inside `GameScene`, where no test reaches it.
+Conversely, plan A never fixed whether a collision or the score wins when both
+land in the same simulation step: a1 and a2 resolved it **differently**, and
+neither suite would notice. Ambiguity left in a plan does not stay ambiguous — it
+becomes two different games.
+
+*Implementer effect.* Plan A only *recommended* testing; one implementer wrote 63
+tests plus a playing bot that asserts the game is winnable, the other wrote 12
+covering the same bullet list. Nothing in the plan explains that spread. Plan B's
+mandate lifted the weaker cell's floor (24 tests across all seven required
+buckets) without making them rigorous — three of its tests pass unchanged when
+the rule they name is removed.
+
+*Cross-pair pattern.* Reading down both columns, the same implementer produced
+the more disciplined variant on both plans — more tests, deeper NOTES, named
+constants over inline literals, extra tsconfig strictness — consistently enough
+to call a tendency, though not a clean sweep (each of the other two cells has at
+least one axis where it leads). n=1 per cell: this is anecdote, not measurement.
