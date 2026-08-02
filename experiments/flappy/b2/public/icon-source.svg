@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Flux Flip spark">
+  <rect width="512" height="512" rx="96" fill="#071225"/>
+  <circle cx="256" cy="256" r="118" fill="#4DEBFF" opacity=".12"/>
+  <path d="M121 267 213 175 256 218 299 175 391 267 299 337 256 294 213 337Z" fill="#26346B" stroke="#D9FAFF" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M121 267 213 175 256 218 256 294 213 337Z" fill="#4DEBFF"/>
+  <path d="M391 267 299 175 256 218 256 294 299 337Z" fill="#FF6687"/>
+  <circle cx="256" cy="256" r="52" fill="#071225" stroke="#D9FAFF" stroke-width="14"/>
+  <circle cx="256" cy="256" r="19" fill="#FFFFFF"/>
+</svg>
