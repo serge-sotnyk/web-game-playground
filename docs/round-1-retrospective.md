@@ -1,5 +1,7 @@
 # Round 1 — retrospective (headless orchestration)
 
+*Language: **English** · [Українською](round-1-retrospective.uk.md)*
+
 A post-round write-up of **how round 1 was actually run**: what each agent was,
 what it cost, how long it took, what went wrong, and what to watch when you
 orchestrate two *different* agent harnesses against the same task.
