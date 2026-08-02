@@ -210,10 +210,22 @@ were fixed before the round and are left as written._
   circular halo, which cannot both be true. `b2` resolved the contradiction by
   drawing an ellipse, `b1` by keeping the circles. A contradiction left in a plan
   became an artefact a player noticed and marked down.
-- **`a1` lost first place to a bug** — a death against empty space, seen once
-  mid-run on one device and not reproduced on the other. `a1` is the variant with
-  63 tests *and* a bot that plays the simulation; `a2`, with 12, showed no bug on
-  either device. The tests bought a great deal, but not this.
+- **`a1` lost first place to a bug** — dying against empty space. Diagnosed
+  afterwards, and the cause is instructive: plan A §6.3 prescribes redrawing a
+  barrier's pooled `Graphics` "only when its barrier index changes". Barrier
+  indices are unique *within* a run but restart at zero on `reset()`, so the plan
+  specified a cache key that is not unique across runs. `a1` invalidates its
+  slots on viewport change and nowhere else, so after an **early** death the
+  cached indices (0…7) match the new run's (0…7), no redraw happens, and every
+  visible band is drawn with the *previous* run's gap while collision uses the
+  real one. It self-heals once fresh indices rotate in — hence intermittent, and
+  hence invisible to the player who was scoring 21 and never died early enough to
+  trigger it. `a2` inherits the identical flaw from the identical plan sentence,
+  but filters barriers by visibility before assigning slots, so at most the first
+  band is affected. A plan defect, surfacing as an implementation bug in one cell
+  and staying latent in the other — in exactly the area the plan excused from
+  testing ("rendering does not need tests"), which is why 63 tests and a
+  playability bot did not catch it.
 - **Neither player found the mechanics inventive.** "Everything feels somewhat
   primitive — I expected the planners to invent something more interesting,"
   against a top score of 21. The brief explicitly handed the mechanic to the
